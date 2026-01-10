@@ -131,13 +131,23 @@ export default function StaffExcuseReviewPage() {
                                         <td className="text-slate-600">{req.week}. Hafta</td>
                                         <td className="text-slate-600 truncate max-w-[150px]" title={req.reason}>{req.reason}</td>
                                         <td>
-                                            <button
-                                                onClick={() => alert("Belge: " + req.document_url)}
-                                                className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium"
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                                Görüntüle
-                                            </button>
+                                            <td>
+                                                <a
+                                                    href={req.document_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium"
+                                                    onClick={(e) => {
+                                                        if (!req.document_url || req.document_url.includes('example.com')) {
+                                                            e.preventDefault();
+                                                            alert("Bu bir demo verisidir. Gerçek bir dosya bulunmamaktadır.\nUrl: " + req.document_url);
+                                                        }
+                                                    }}
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                    Görüntüle
+                                                </a>
+                                            </td>
                                         </td>
                                         <td>
                                             {req.status === 'pending' ? (

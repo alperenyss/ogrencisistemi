@@ -153,7 +153,7 @@ export default function SeedDataPage() {
                     week_number: 3,
                     reason: "Hastalık nedeniyle raporluyum.",
                     status: "pending",
-                    document_url: "https://example.com/sahte-rapor.pdf"
+                    document_url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
                 });
 
             if (reqError) log("Mazeret ekleme uyarısı (zaten var olabilir): " + reqError.message);
@@ -189,6 +189,13 @@ export default function SeedDataPage() {
 
             // 4. YOKLAMA KAYITLARI OLUŞTUR (Personel olarak oturum açıkken)
             log("Yoklama kayıtları giriliyor...");
+
+            // Önce eski yoklamaları temizle (Duplicate önlemek için)
+            await supabase!
+                .from('attendance')
+                .delete()
+                .eq('student_id', studentId)
+                .eq('course_code', courseCode);
 
             // Tarihleri ayarla: 1. ve 2. hafta geçmişte
             const d1 = new Date(); d1.setDate(d1.getDate() - 14);
@@ -239,6 +246,72 @@ export default function SeedDataPage() {
         }
     };
 
+    const clearAttendance = async () => {
+        setLoading(true);
+        setStatus([]);
+        log("Tüm yoklama kayıtları siliniyor...");
+
+        const { error } = await supabase!
+            .from('attendance')
+            .delete()
+            .neq('id', 0); // Hack to delete all if ID is int, or use uuid approach
+
+        // If ID is UUID, modify accordingly. Assuming int based on schema usually or uuid.
+        // Safer to use a known helper or just try deleting.
+        // For attendance, usually composite key or id. 
+        // Let's assume we can delete by filtering a common column like course_code not null
+
+        // BETTER: Delete specific demo course records to be safe, or all.
+        // Let's try deleting all.
+        const { error: delError } = await supabase!
+            .from('attendance')
+            .delete()
+            .neq('student_id', '00000000-0000-0000-0000-000000000000');
+
+        if (delError) {
+            log("Silme hatası: " + delError.message);
+        } else {
+            log("Tüm yoklamalar temizlendi.");
+        }
+        setLoading(false);
+    };
+
+    const clearRequests = async () => {
+        setLoading(true);
+        setStatus([]);
+        log("Mazeret talepleri siliniyor...");
+
+        const { error } = await supabase!
+            .from('excuse_requests')
+            .delete()
+            .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+        if (error) {
+            log("Silme hatası: " + error.message);
+        } else {
+            log("İşlem başarılı. Talepler temizlendi.");
+        }
+        setLoading(false);
+    };
+
+    const resetRejected = async () => {
+        setLoading(true);
+        setStatus([]);
+        log("Reddedilen mazeretler siliniyor...");
+
+        const { error } = await supabase!
+            .from('excuse_requests')
+            .delete()
+            .eq('status', 'rejected');
+
+        if (error) {
+            log("Silme hatası: " + error.message);
+        } else {
+            log("Reddedilenler silindi. Öğrenci tekrar talep oluşturabilir.");
+        }
+        setLoading(false);
+    };
+
     return (
         <div className="p-10 max-w-2xl mx-auto space-y-6">
             <h1 className="text-2xl font-bold">Test Verisi Oluşturucu</h1>
@@ -261,6 +334,30 @@ export default function SeedDataPage() {
                     className="px-6 py-3 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 font-bold"
                 >
                     {loading ? "İşlem sürüyor..." : "DEMO SENARYOSU OLUŞTUR (Sunum İçin)"}
+                </button>
+
+                <button
+                    onClick={clearRequests}
+                    disabled={loading}
+                    className="px-6 py-3 bg-red-100 text-red-700 border border-red-200 rounded hover:bg-red-200 disabled:opacity-50 font-medium"
+                >
+                    {loading ? "İşlem sürüyor..." : "Tüm Mazeret Taleplerini Temizle"}
+                </button>
+
+                <button
+                    onClick={resetRejected}
+                    disabled={loading}
+                    className="px-6 py-3 bg-amber-100 text-amber-900 border border-amber-200 rounded hover:bg-amber-200 disabled:opacity-50 font-medium"
+                >
+                    {loading ? "İşlem sürüyor..." : "Sadece Reddedilenleri Temizle (Reset)"}
+                </button>
+
+                <button
+                    onClick={clearAttendance}
+                    disabled={loading}
+                    className="px-6 py-3 bg-red-100 text-red-700 border border-red-200 rounded hover:bg-red-200 disabled:opacity-50 font-medium"
+                >
+                    {loading ? "İşlem sürüyor..." : "Tüm Yoklamaları Temizle"}
                 </button>
             </div>
 
