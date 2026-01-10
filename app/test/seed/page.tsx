@@ -138,26 +138,12 @@ export default function SeedDataPage() {
                 studentId = sSignupData.user!.id;
             }
 
-            // 2. MAZERET TALEBİ OLUŞTUR (Öğrenci olarak oturum açıkken)
-            // Senaryo: 3. derste mazeret var.
+            // 2. MAZERET TALEBİ OLUŞTURMA (İPTAL EDİLDİ - Manuel eklenecek)
+            // Senaryo: 3. derste mazeret var ama henüz sisteme girilmemiş.
+            // 2. MAZERET TALEBİ OLUŞTURMA (İPTAL EDİLDİ - Manuel eklenecek)
+            // Senaryo: 3. derste mazeret var ama henüz sisteme girilmemiş.
+            log("Mazeret talebi oluşturulmuyor (Manuel eklenecek)...");
             const courseCode = "CS-101";
-            const week3Date = new Date(); // Bugün
-
-            // Önce mazeret talebini ekleyelim (Eğer daha önce yoksa)
-            log("Mazeret talebi oluşturuluyor...");
-            const { error: reqError } = await supabase!
-                .from('excuse_requests')
-                .insert({
-                    student_id: studentId,
-                    course_code: courseCode,
-                    week_number: 3,
-                    reason: "Hastalık nedeniyle raporluyum.",
-                    status: "pending",
-                    document_url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-                });
-
-            if (reqError) log("Mazeret ekleme uyarısı (zaten var olabilir): " + reqError.message);
-            else log("Mazeret talebi eklendi.");
 
             await supabase!.auth.signOut();
 

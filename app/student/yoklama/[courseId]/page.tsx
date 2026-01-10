@@ -86,38 +86,64 @@ export default function CourseAttendanceDetail() {
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0] && selectedWeek) {
             setIsUploading(true);
-            const file = e.target.files[0];
+            try {
+                const file = e.target.files[0];
+                const { data: { user } } = await supabase!.auth.getUser();
 
-            // In a real app, upload to Supabase Storage:
-            // await supabase.storage.from('documents').upload(...)
-            // Here we just simulate it by saving the filename to the database.
+                if (!user) throw new Error("Oturum açmış kullanıcı bulunamadı.");
 
-            const { data: { user } } = await supabase!.auth.getUser();
+                // 1. Dosya ismini benzersiz yapalım
+                // Dosya yapısı: documents/user_id/course_code/week_timestamp_filename
+                // Türkçe karakterleri temizlemek iyi olurdu ama şimdilik basit tutalım.
+                const fileExt = file.name.split('.').pop();
+                const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                const filePath = `${user.id}/${courseCode}/Week${selectedWeek}_${Date.now()}.${fileExt}`;
 
-            if (user) {
-                const { error } = await supabase!
+                // 2. Supabase Storage'a Yükle
+                const { error: uploadError } = await supabase!
+                    .storage
+                    .from('documents') // Bucket adı 'documents' olmalı
+                    .upload(filePath, file);
+
+                if (uploadError) {
+                    throw new Error("Dosya yüklenemedi: " + uploadError.message);
+                }
+
+                // 3. Public URL al
+                const { data: { publicUrl } } = supabase!
+                    .storage
+                    .from('documents')
+                    .getPublicUrl(filePath);
+
+                // 4. Veritabanına Kaydet
+                const { error: dbError } = await supabase!
                     .from('excuse_requests')
                     .insert({
                         student_id: user.id,
                         course_code: courseCode,
                         week_number: selectedWeek,
                         reason: "Mazeret Belgesi: " + file.name,
-                        document_url: "fake_path/" + file.name,
+                        document_url: publicUrl,
                         status: 'pending'
                     });
 
-                if (error) {
-                    alert('Hata: ' + error.message);
-                } else {
-                    // Update local state to show "Inceleniyor" immediately
-                    setAttendanceData(prev => prev.map(item =>
-                        item.week === selectedWeek ? { ...item, hasExcuse: true, excuseStatus: 'pending' } : item
-                    ));
-                }
-            }
+                if (dbError) throw new Error("Veritabanı kaydı hatası: " + dbError.message);
 
-            setIsUploading(false);
-            setSelectedWeek(null);
+                // Başarılı
+                alert("Mazeret belgeniz başarıyla yüklendi/iletildi.");
+
+                // UI Güncelle
+                setAttendanceData(prev => prev.map(item =>
+                    item.week === selectedWeek ? { ...item, hasExcuse: true, excuseStatus: 'pending' } : item
+                ));
+
+            } catch (error: any) {
+                console.error("Upload hatası:", error);
+                alert('HATA: ' + error.message + '\n\nİPUCU: Supabase panelinde "documents" adında Public bir Storage Bucket oluşturduğunuzdan emin olun.');
+            } finally {
+                setIsUploading(false);
+                setSelectedWeek(null);
+            }
         }
     };
 
