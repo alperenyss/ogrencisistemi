@@ -163,7 +163,7 @@ export default function LoginPage() {
                 {/* Demo Info */}
                 <div className="mt-6 text-center">
                     <p className="text-xs text-slate-400 mb-2">
-                        Demo giriş bilgileri • Şifre: <span className="font-mono font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">123456</span>
+                        Demo giriş bilgileri • Şifre: <span className="font-mono font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">password123</span>
                     </p>
                     <div className="flex justify-center gap-4 text-xs text-slate-400">
                         <span className="bg-slate-100 px-2 py-1 rounded">ogrenci@univ.edu</span>
