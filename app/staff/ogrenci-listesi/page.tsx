@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, ChevronRight, UserPlus } from "lucide-react";
+import { Search, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import Link from "next/link";
+
 
 export default function StaffStudentListPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -44,10 +44,7 @@ export default function StaffStudentListPage() {
                     <h1 className="page-title">Öğrenci Listesi</h1>
                     <p className="page-subtitle">Tüm kayıtlı öğrenciler</p>
                 </div>
-                <Link href="/test/seed" className="btn btn-outline text-sm">
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Öğrenci/Veri Ekle (Test)
-                </Link>
+
             </div>
 
             <div className="card overflow-hidden">
